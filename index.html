@@ -1,32 +1,87 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My First Program</title>
+    <title>Varun's Interactive Site</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        canvas { border: 2px solid #3b82f6; background: #0f172a; border-radius: 12px; }
+        /* This helper class hides elements */
+        .hidden { display: none; }
+    </style>
 </head>
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+<body class="bg-slate-900 text-white font-sans flex items-center justify-center min-h-screen p-4">
 
-    <h1 class="text-4xl font-bold mb-4 text-blue-600">Click the Button!</h1>
-    
-    <button onclick="runMyProgram()" class="bg-green-500 text-white px-8 py-4 rounded-lg shadow-lg hover:bg-green-600">
-        Run Program
-    </button>
+    <div id="welcome-screen" class="text-center p-10 bg-slate-800 rounded-3xl shadow-2xl border border-slate-700 max-w-lg">
+        <h1 class="text-5xl font-extrabold mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+            Hello World!
+        </h1>
+        <p class="text-slate-400 text-lg mb-8">
+            Welcome to my site. Click below to launch my point-manipulation program.
+        </p>
+        <button onclick="launchApp()" class="bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-full font-bold transition transform hover:scale-105">
+            Launch Program 🚀
+        </button>
+    </div>
 
-    <p id="message-area" class="mt-10 text-2xl font-mono text-gray-800"></p>
+    <div id="app-screen" class="hidden text-center">
+        <h2 class="text-3xl font-bold mb-6 text-blue-400">Interactive Point Box</h2>
+        
+        <canvas id="myCanvas" width="400" height="400"></canvas>
+
+        <div class="mt-8 space-x-4">
+            <button onclick="movePoints()" class="bg-emerald-500 hover:bg-emerald-600 px-6 py-2 rounded-full font-bold transition">
+                Move Points
+            </button>
+            <button onclick="resetApp()" class="bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded-full font-bold transition">
+                Go Back
+            </button>
+        </div>
+    </div>
 
     <script>
-        // This is your actual Program (JavaScript)
-        function runMyProgram() {
-            // 1. We find the "message-area" on the screen
-            const area = document.getElementById('message-area');
-            
-            // 2. We change the text inside it
-            area.innerHTML = "Program Executed! 🚀 The time is: " + new Date().toLocaleTimeString();
-            
-            // 3. We show an alert popup
-            alert("Hello from your first program!");
+        // --- 1. UI NAVIGATION LOGIC ---
+        function launchApp() {
+            // Hide Welcome, Show App
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+            draw(); // Initialize the drawing
+        }
+
+        function resetApp() {
+            // Hide App, Show Welcome
+            document.getElementById('app-screen').classList.add('hidden');
+            document.getElementById('welcome-screen').classList.remove('hidden');
+        }
+
+        // --- 2. THE "PROGRAM" LOGIC ---
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let points = [
+            { x: 100, y: 100 }, { x: 300, y: 100 },
+            { x: 200, y: 300 }, { x: 150, y: 200 }
+        ];
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            points.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+                ctx.fillStyle = "#60a5fa";
+                ctx.fill();
+                // Adding a little glow effect
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "#3b82f6";
+            });
+        }
+
+        function movePoints() {
+            points = points.map(p => ({
+                x: (p.x + Math.random() * 40 - 20 + 400) % 400,
+                y: (p.y + Math.random() * 40 - 20 + 400) % 400
+            }));
+            draw();
         }
     </script>
-
 </body>
 </html>
