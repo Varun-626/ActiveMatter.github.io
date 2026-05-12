@@ -1,10 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My First Site</title>
+    <title>My First Program</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Welcome to my website!</h1>
-    <p>Built on GitHub Pages.</p>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+
+    <h1 class="text-4xl font-bold mb-4 text-blue-600">Click the Button!</h1>
+    
+    <button onclick="runMyProgram()" class="bg-green-500 text-white px-8 py-4 rounded-lg shadow-lg hover:bg-green-600">
+        Run Program
+    </button>
+
+    <p id="message-area" class="mt-10 text-2xl font-mono text-gray-800"></p>
+
+    <script>
+        // This is your actual Program (JavaScript)
+        function runMyProgram() {
+            // 1. We find the "message-area" on the screen
+            const area = document.getElementById('message-area');
+            
+            // 2. We change the text inside it
+            area.innerHTML = "Program Executed! 🚀 The time is: " + new Date().toLocaleTimeString();
+            
+            // 3. We show an alert popup
+            alert("Hello from your first program!");
+        }
+    </script>
+
 </body>
 </html>
