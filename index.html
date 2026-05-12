@@ -29,9 +29,6 @@
         <canvas id="myCanvas" width="400" height="400"></canvas>
 
         <div class="mt-8 space-x-4">
-            <button onclick="movePoints()" class="bg-emerald-500 hover:bg-emerald-600 px-6 py-2 rounded-full font-bold transition">
-                Move Points
-            </button>
             <button onclick="resetApp()" class="bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded-full font-bold transition">
                 Go Back
             </button>
@@ -44,7 +41,7 @@
             // Hide Welcome, Show App
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-            draw(); // Initialize the drawing
+            animate(); // Initialize the animation
         }
 
         function resetApp() {
@@ -74,13 +71,20 @@
                 ctx.shadowColor = "#3b82f6";
             });
         }
-
-        function movePoints() {
+        
+        function animate() {
+            // 1. Move the points (The Math)
             points = points.map(p => ({
-                x: (p.x + Math.random() * 40 - 20 + 400) % 400,
-                y: (p.y + Math.random() * 40 - 20 + 400) % 400
+                // We add a tiny random amount (-1 to +1) to x and y
+                x: (p.x + (Math.random() * 2 - 1) + 400) % 400,
+                y: (p.y + (Math.random() * 2 - 1) + 400) % 400
             }));
+
+            // 2. Clear and Redraw (The Visuals)
             draw();
+
+            // 3. Tell the browser to run this function again for the next frame
+            requestAnimationFrame(animate);
         }
     </script>
 </body>
