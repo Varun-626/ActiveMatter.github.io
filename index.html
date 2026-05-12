@@ -55,8 +55,10 @@
         const ctx = canvas.getContext('2d');
 
         let points = [
-            { x: 100, y: 100 }, { x: 300, y: 100 },
-            { x: 200, y: 300 }, { x: 150, y: 200 }
+            { x: 100, y: 100, vx: 2, vy: 1 }, 
+            { x: 300, y: 100, vx: -1.5, vy: 2 },
+            { x: 200, y: 300, vx: 1, vy: -2 }, 
+            { x: 150, y: 200, vx: 2.5, vy: 1.5 }
         ];
 
         function draw() {
@@ -75,9 +77,19 @@
         function animate() {
             // 1. Move the points (The Math)
             points = points.map(p => ({
-                // We add a tiny random amount (-1 to +1) to x and y
-                x: (p.x + (Math.random() * 2 - 1) + 400) % 400,
-                y: (p.y + (Math.random() * 2 - 1) + 400) % 400
+                // 1. ADD JITTER (Changes speed and direction)
+                p.vx += (Math.random() * 0.6 - 0.3); 
+                p.vy += (Math.random() * 0.6 - 0.3);
+
+                // 2. MOVE
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // 3. THE TELEPORT (Screen Wrap)
+                // We add 400 before the % to handle negative numbers 
+                // (so they don't get stuck when moving left/up)
+                p.x = (p.x + 400) % 400;
+                p.y = (p.y + 400) % 400;
             }));
 
             // 2. Clear and Redraw (The Visuals)
