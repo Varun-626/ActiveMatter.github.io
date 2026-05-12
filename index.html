@@ -78,8 +78,8 @@
             // 1. Move the points (The Math)
             points.forEach(p => {
                 // 1. ADD JITTER (Changes speed and direction)
-                p.vx += (Math.random() * 0.6 - 0.3); 
-                p.vy += (Math.random() * 0.6 - 0.3);
+                p.vx += (Math.random() * 0.1 - 0.05); 
+                p.vy += (Math.random() * 0.1 - 0.05);
 
                 // 2. MOVE
                 p.x += p.vx;
