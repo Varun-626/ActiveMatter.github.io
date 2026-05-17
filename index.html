@@ -68,8 +68,8 @@
             for (let i = 0; i < 5; i++) {
                 subs.push({
                     // Distribute them initially at different starting offsets (x0, y0)
-                    x0Offset: (Math.random() * 60 - 30),
-                    y0Offset: (Math.random() * 60 - 30),
+                    x0Offset: (Math.random() * 100 - 50),
+                    y0Offset: (Math.random() * 100 - 50),
                     x: 0,
                     y: 0,
                     t: Math.random() * 10 // Stagger their starting time so they aren't perfectly stacked
@@ -107,22 +107,37 @@
 
 
         function animate() {
-            // Core forces for the main nodes
+            // 1. CLEAR THE CANVAS
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // --- FORCE CONSTANTS FOR MAIN BLUE POINTS ---
             const jitterPower = 0.1;
             const personalSpace = 35;
             const repelStrength = 0.05;
+    
+            // Tiny spiral forces so the main points don't collapse too aggressively
+            const blueA = -0.0001; // Inward pull between blue nodes
+            const blueB = 0.0002;  // Rotational twist between blue nodes
 
-            // --- MATH STEP 1: Move the Main Points (Jitter + Repulsion) ---
+            // --- MATH STEP 1: Move the Main Blue Points ---
             mainPoints.forEach(p1 => {
+                // A. Random baseline jitter
                 p1.vx += (Math.random() * jitterPower - (jitterPower / 2));
                 p1.vy += (Math.random() * jitterPower - (jitterPower / 2));
 
+                // B. Interactions with all other blue points
                 mainPoints.forEach(p2 => {
                     if (p1 === p2) return;
+
                     let dx = p1.x - p2.x;
                     let dy = p1.y - p2.y;
                     let distance = Math.sqrt(dx * dx + dy * dy);
 
+                    // MUTUAL ATTRACTION: Force-based spiral pull toward other blue points
+                    p1.vx += (blueA * dx - blueB * dy);
+                    p1.vy += (blueB * dx + blueA * dy);
+
+                    // REPULSION: Push back if they invade personal space
                     if (distance < personalSpace && distance > 0.1) {
                         let overlapRatio = (personalSpace - distance) / personalSpace;
                         p1.vx += (dx / distance) * overlapRatio * repelStrength;
@@ -130,22 +145,25 @@
                     }
                 });
 
+                // C. Apply speed limits so mutual attraction doesn't cause infinite acceleration
+                p1.vx = Math.max(-2, Math.min(2, p1.vx));
+                p1.vy = Math.max(-2, Math.min(2, p1.vy));
+
+                // D. Move and Screen Wrap
                 p1.x = (p1.x + p1.vx + 400) % 400;
                 p1.y = (p1.y + p1.vy + 400) % 400;
             });
 
-            // --- MATH STEP 2: Calculate Constellations using your Exact Formula ---
-            // Change 'a' to a small positive/negative decimal to watch them breathe inward/outward
-            const a = -0.02;  // Exponent multiplier (tightness scale)
-            const b = 0.05;   // Angular frequency (rotation speed)
-            const dt = 0.1;   // How fast time moves forward per frame
+            // --- MATH STEP 2: Calculate Green Constellations (Analytical Formula) ---
+            const a = -0.02;  // Tightness of green spiral inward decay
+            const b = 0.05;   // Rotation speed of green points
+            const dt = 0.1;   // Clock speed for constellation time tracking
 
             mainPoints.forEach((main, index) => {
                 constellations[index].forEach(sub => {
                     sub.t += dt; // Tick time forward
 
-                    // Your exact formula components:
-                    // x0 and y0 are calculated relative to the target's current moving position
+                    // Targets are the freshly updated coordinates of the blue main points
                     let x0 = main.x + sub.x0Offset;
                     let y0 = main.y + sub.y0Offset;
 
@@ -156,16 +174,17 @@
                     let dx0 = x0 - main.x;
                     let dy0 = y0 - main.y;
 
-                    // Direct mapping of your equations:
+                    // Your exact analytical spiral formula
                     sub.x = main.x + expFactor * (dx0 * cosFactor - dy0 * sinFactor);
                     sub.y = main.y + expFactor * (dx0 * sinFactor + dy0 * cosFactor);
             
-                    // Screen wrap the sub-points too so they don't leave the box boundaries
+                    // Keep green dots constrained to the canvas
                     sub.x = (sub.x + 400) % 400;
                     sub.y = (sub.y + 400) % 400;
                 });
             });
 
+            // 3. REDRAW & LOOP
             draw();
             requestAnimationFrame(animate);
         }
