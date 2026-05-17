@@ -62,14 +62,14 @@
             { x: 150, y: 200, vx: 2.5, vy: 1.5 }
         ];
 
-        // Generate 5 constellation points for each main point
+        // Generate 10 constellation points for each main point
         let constellations = mainPoints.map((main, mainIndex) => {
             let subs = [];
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 10; i++) {
                 subs.push({
                     // Distribute them initially at different starting offsets (x0, y0)
-                    x0Offset: (Math.random() * 100 - 50),
-                    y0Offset: (Math.random() * 100 - 50),
+                    x0Offset: (Math.random() * 250 - 100),
+                    y0Offset: (Math.random() * 250 - 100),
                     x: 0,
                     y: 0,
                     t: Math.random() * 10 // Stagger their starting time so they aren't perfectly stacked
