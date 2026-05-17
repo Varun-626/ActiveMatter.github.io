@@ -54,79 +54,122 @@
         const canvas = document.getElementById('myCanvas');
         const ctx = canvas.getContext('2d');
 
-        let points = [
+
+        let mainPoints = [
             { x: 100, y: 100, vx: 2, vy: 1 }, 
             { x: 300, y: 100, vx: -1.5, vy: 2 },
             { x: 200, y: 300, vx: 1, vy: -2 }, 
             { x: 150, y: 200, vx: 2.5, vy: 1.5 }
         ];
 
+        // Generate 5 constellation points for each main point
+        let constellations = mainPoints.map((main, mainIndex) => {
+            let subs = [];
+            for (let i = 0; i < 5; i++) {
+                subs.push({
+                    // Distribute them initially at different starting offsets (x0, y0)
+                    x0Offset: (Math.random() * 60 - 30),
+                    y0Offset: (Math.random() * 60 - 30),
+                    x: 0,
+                    y: 0,
+                    t: Math.random() * 10 // Stagger their starting time so they aren't perfectly stacked
+                });
+            }
+            return subs;
+        });
+
+
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            points.forEach(p => {
+    
+            // Disable heavy shadows globally to keep performance smooth with 24 points
+            ctx.shadowBlur = 0; 
+
+            mainPoints.forEach((p, index) => {
+                // A. Draw the 5 constellation points (Emerald Green)
+                ctx.fillStyle = "#34d399";
+                constellations[index].forEach(sub => {
+                    ctx.beginPath();
+                    ctx.arc(sub.x, sub.y, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // B. Draw the Main Point (Blue Glow)
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
                 ctx.fillStyle = "#60a5fa";
-                ctx.fill();
-                // Adding a little glow effect
-                ctx.shadowBlur = 15;
+                ctx.shadowBlur = 10;
                 ctx.shadowColor = "#3b82f6";
+                ctx.fill();
+                ctx.shadowBlur = 0; // Reset for next iterations
             });
         }
-        
+
+
         function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Core forces for the main nodes
+            const jitterPower = 0.1;
+            const personalSpace = 35;
+            const repelStrength = 0.05;
 
-            // Forces Constants
-            const a = -0.0001;          // Tiny inward spiral pull
-            const b = 0.0002;           // Gentle spiral rotation
-            const personalSpace = 20;   // Distance in pixels where points start pushing away
-            const repelStrength = 0.1;  // How hard they push back when crowded
+            // --- MATH STEP 1: Move the Main Points (Jitter + Repulsion) ---
+            mainPoints.forEach(p1 => {
+                p1.vx += (Math.random() * jitterPower - (jitterPower / 2));
+                p1.vy += (Math.random() * jitterPower - (jitterPower / 2));
 
-            points.forEach(p1 => {
-                // 1. ADD JITTER
-                p1.vx += (Math.random() * 0.1 - 0.05); 
-                p1.vy += (Math.random() * 0.1 - 0.05);
-
-                // 2. INTERACTIONS WITH OTHER POINTS
-                points.forEach(p2 => {
-                    if (p1 === p2) return; 
-
+                mainPoints.forEach(p2 => {
+                    if (p1 === p2) return;
                     let dx = p1.x - p2.x;
                     let dy = p1.y - p2.y;
-            
-                    // We need the actual distance to calculate precise repulsion
                     let distance = Math.sqrt(dx * dx + dy * dy);
 
-                    // A. SPIRAL FORCE (Always active)
-                    p1.vx += (a * dx - b * dy);
-                    p1.vy += (b * dx + a * dy);
-
-                    // B. REPULSION FORCE (Only triggers if they get too close)
-                    // The "distance > 0.1" check prevents dividing by zero if they overlap perfectly
                     if (distance < personalSpace && distance > 0.1) {
-                        // Determine how crowded they are (0 = right on top of each other, 1 = at the edge of personal space)
                         let overlapRatio = (personalSpace - distance) / personalSpace;
-                
-                        // Push away from p2 (dx and dy point away from p2 toward p1)
-                        // We normalize the vector (dx / distance) and scale it by our force
                         p1.vx += (dx / distance) * overlapRatio * repelStrength;
                         p1.vy += (dy / distance) * overlapRatio * repelStrength;
                     }
                 });
 
-                // 3. MOVE
-                p1.x += p1.vx;
-                p1.y += p1.vy;
+                p1.x = (p1.x + p1.vx + 400) % 400;
+                p1.y = (p1.y + p1.vy + 400) % 400;
+            });
 
-                // 4. TELEPORT (Screen Wrap)
-                p1.x = (p1.x + 400) % 400;
-                p1.y = (p1.y + 400) % 400;
+            // --- MATH STEP 2: Calculate Constellations using your Exact Formula ---
+            // Change 'a' to a small positive/negative decimal to watch them breathe inward/outward
+            const a = -0.02;  // Exponent multiplier (tightness scale)
+            const b = 0.05;   // Angular frequency (rotation speed)
+            const dt = 0.1;   // How fast time moves forward per frame
+
+            mainPoints.forEach((main, index) => {
+                constellations[index].forEach(sub => {
+                    sub.t += dt; // Tick time forward
+
+                    // Your exact formula components:
+                    // x0 and y0 are calculated relative to the target's current moving position
+                    let x0 = main.x + sub.x0Offset;
+                    let y0 = main.y + sub.y0Offset;
+
+                    let expFactor = Math.exp(a * sub.t);
+                    let cosFactor = Math.cos(b * sub.t);
+                    let sinFactor = Math.sin(b * sub.t);
+
+                    let dx0 = x0 - main.x;
+                    let dy0 = y0 - main.y;
+
+                    // Direct mapping of your equations:
+                    sub.x = main.x + expFactor * (dx0 * cosFactor - dy0 * sinFactor);
+                    sub.y = main.y + expFactor * (dx0 * sinFactor + dy0 * cosFactor);
+            
+                    // Screen wrap the sub-points too so they don't leave the box boundaries
+                    sub.x = (sub.x + 400) % 400;
+                    sub.y = (sub.y + 400) % 400;
+                });
             });
 
             draw();
             requestAnimationFrame(animate);
         }
+               
     </script>
 </body>
 </html>
