@@ -75,42 +75,56 @@
         }
         
         function animate() {
-            // Spiral constants: alter these to change the tightness and direction of the swirl
-            const a = -0.0001; // Tightness of the inward contraction
-            const b = 0.0002;   // Speed of the rotation
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. Move the points (The Math)
+            // Forces Constants
+            const a = -0.0001;          // Tiny inward spiral pull
+            const b = 0.0002;           // Gentle spiral rotation
+            const personalSpace = 20;   // Distance in pixels where points start pushing away
+            const repelStrength = 0.1;  // How hard they push back when crowded
+
             points.forEach(p1 => {
-                // A. ADD JITTER (Changes speed and direction)
+                // 1. ADD JITTER
                 p1.vx += (Math.random() * 0.1 - 0.05); 
                 p1.vy += (Math.random() * 0.1 - 0.05);
 
-                // B. ADD SPIRAL FORCE (Secondary motion based on all other points)
+                // 2. INTERACTIONS WITH OTHER POINTS
                 points.forEach(p2 => {
-                    if (p1 === p2) return; // Skip comparing a point to itself
+                    if (p1 === p2) return; 
 
-                    // Your formula maps the relative distance as the target vectors:
                     let dx = p1.x - p2.x;
                     let dy = p1.y - p2.y;
+            
+                    // We need the actual distance to calculate precise repulsion
+                    let distance = Math.sqrt(dx * dx + dy * dy);
 
-                    // Apply your exact equation structure directly to alter the velocities
+                    // A. SPIRAL FORCE (Always active)
                     p1.vx += (a * dx - b * dy);
                     p1.vy += (b * dx + a * dy);
+
+                    // B. REPULSION FORCE (Only triggers if they get too close)
+                    // The "distance > 0.1" check prevents dividing by zero if they overlap perfectly
+                    if (distance < personalSpace && distance > 0.1) {
+                        // Determine how crowded they are (0 = right on top of each other, 1 = at the edge of personal space)
+                        let overlapRatio = (personalSpace - distance) / personalSpace;
+                
+                        // Push away from p2 (dx and dy point away from p2 toward p1)
+                        // We normalize the vector (dx / distance) and scale it by our force
+                        p1.vx += (dx / distance) * overlapRatio * repelStrength;
+                        p1.vy += (dy / distance) * overlapRatio * repelStrength;
+                    }
                 });
 
-                // C. MOVE
+                // 3. MOVE
                 p1.x += p1.vx;
                 p1.y += p1.vy;
 
-                // D. THE TELEPORT (Screen Wrap)
+                // 4. TELEPORT (Screen Wrap)
                 p1.x = (p1.x + 400) % 400;
                 p1.y = (p1.y + 400) % 400;
             });
 
-            // 2. Clear and Redraw (The Visuals)
             draw();
-
-            // 3. Tell the browser to run this function again for the next frame
             requestAnimationFrame(animate);
         }
     </script>
