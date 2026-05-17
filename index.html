@@ -75,21 +75,36 @@
         }
         
         function animate() {
+            // Spiral constants: alter these to change the tightness and direction of the swirl
+            const a = -0.005; // Tightness of the inward contraction
+            const b = 0.02;   // Speed of the rotation
+
             // 1. Move the points (The Math)
-            points.forEach(p => {
-                // 1. ADD JITTER (Changes speed and direction)
-                p.vx += (Math.random() * 0.1 - 0.05); 
-                p.vy += (Math.random() * 0.1 - 0.05);
+            points.forEach(p1 => {
+                // A. ADD JITTER (Changes speed and direction)
+                p1.vx += (Math.random() * 0.1 - 0.05); 
+                p1.vy += (Math.random() * 0.1 - 0.05);
 
-                // 2. MOVE
-                p.x += p.vx;
-                p.y += p.vy;
+                // B. ADD SPIRAL FORCE (Secondary motion based on all other points)
+                points.forEach(p2 => {
+                    if (p1 === p2) return; // Skip comparing a point to itself
 
-                // 3. THE TELEPORT (Screen Wrap)
-                // We add 400 before the % to handle negative numbers 
-                // (so they don't get stuck when moving left/up)
-                p.x = (p.x + 400) % 400;
-                p.y = (p.y + 400) % 400;
+                    // Your formula maps the relative distance as the target vectors:
+                    let dx = p1.x - p2.x;
+                    let dy = p1.y - p2.y;
+
+                    // Apply your exact equation structure directly to alter the velocities
+                    p1.vx += (a * dx - b * dy);
+                    p1.vy += (b * dx + a * dy);
+                });
+
+                // C. MOVE
+                p1.x += p1.vx;
+                p1.y += p1.vy;
+
+                // D. THE TELEPORT (Screen Wrap)
+                p1.x = (p1.x + 400) % 400;
+                p1.y = (p1.y + 400) % 400;
             });
 
             // 2. Clear and Redraw (The Visuals)
